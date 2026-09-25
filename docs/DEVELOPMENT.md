@@ -27,11 +27,12 @@ home-ai-assistant/
 │  ├─ GAS_MANUAL_DEPLOY.md# GAS手動デプロイ・clasp運用マニュアル
 │  └─ GAS_TEST_PLAN.md    # GAS実機テスト計画書
 ├─ src/                   # GASサーバーサイドコード
-│  └─ Code.js             # GASエントリーポイント・接続確認用最小コード
+│  └─ Code.gs             # GASエントリーポイント・接続確認用最小コード
 ├─ web/                   # フロントエンド資産（HTML/CSS/JS）※TASK-003以降
 ├─ tests/                 # テストコード
 ├─ appsscript.json        # GASマニフェストファイル
-├─ .clasp.json            # clasp接続設定
+├─ .clasp.json            # clasp接続設定（ローカル専用・Git管理外）
+├─ .clasp.json.sample     # clasp接続設定テンプレート
 ├─ .claspignore           # clasp同期除外設定
 └─ .gitignore             # Git除外設定
 ```
@@ -85,7 +86,19 @@ home-ai-assistant/
 
 ## 5. 秘密情報と環境依存値の取り扱い
 
-- **Gitリポジトリへの秘密情報コミット禁止**:
-  - APIキー、トークン、機密スプレッドシートID等はリポジトリ内に直接記述しない。
-- **PropertiesServiceの利用**:
-  - スクリプト実行に必要な秘密情報やIDは、GASの「プロジェクトの設定」>「スクリプト プロパティ」に手動設定し、コード内からは `PropertiesService.getScriptProperties().getProperty('KEY')` 経由で取得する。
+### 5.1 Gitリポジトリへの秘密情報コミット禁止
+- APIキー、トークン、機密スプレッドシートID等はリポジトリ内に直接記述しない。
+
+### 5.2 PropertiesServiceの利用
+- スクリプト実行に必要な秘密情報やIDは、GASの「プロジェクトの設定」>「スクリプト プロパティ」に手動設定し、コード内からは `PropertiesService.getScriptProperties().getProperty('KEY')` 経由で取得する。
+
+### 5.3 GAS Web Appアクセス制御原則
+GAS Web Appのアクセス制御設定は、開発段階と本番展開を分離して厳格に管理する。
+
+- **開発中（TASK-000〜開発段階）**:
+  - `webapp.access` は `"MYSELF"` とする。
+  - 開発基盤および疎通確認段階において、開発者本人以外からの匿名アクセス（`ANYONE_ANONYMOUS` 等）は許可しない。
+  - `webapp.executeAs` は現行設定の `"USER_DEPLOYING"`（デプロイしたユーザーとして実行）に従う。
+- **本番展開時**:
+  - 利用者要件、認証方式、公開範囲を確定した上で `webapp.access` および `webapp.executeAs` の設定を再定義する。
+  - 開発中の `MYSELF` 設定を、本番セキュリティ要件の十分な検討およびPM承認なしに変更してはならない。
