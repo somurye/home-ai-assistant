@@ -1,0 +1,16 @@
+# OS & Editor generated files
+.DS_Store
+Thumbs.db
+*.log
+
+# Antigravity IDE configuration
+.antigravity/
+
+# Node dependencies (if any CLI tools installed locally)
+node_modules/
+
+# Local clasp authentication (never commit)
+.clasprc.json
+
+# Local clasp project configuration (environment specific, never commit)
+.clasp.json

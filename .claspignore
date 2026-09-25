@@ -1,0 +1,23 @@
+# clasp ignore rules for Home AI Assistant
+
+# Git & Editor configuration
+.git/**
+.gitignore
+.antigravity/**
+.vscode/**
+
+# Project documentation & guidelines
+docs/**
+README.md
+Gemini.md
+Qwen_REVIEW.md
+
+# Tests
+tests/**
+
+# clasp configuration
+.clasp.json
+
+# Placeholders & scratch files
+**/.gitkeep
+scratch/**
