@@ -14,12 +14,44 @@
 
 /**
  * HTTP GET リクエストのエントリーポイント。
- * TASK-000では開発基盤の疎通確認のみを行う最小レスポンスを返す。
+ * レシート撮影・画像最適化・送信UI (web/index.html) を返す。
  *
  * @return {GoogleAppsScript.HTML.HtmlOutput} GAS HTML Service レスポンス
  */
 function doGet() {
-  return HtmlService.createHtmlOutput('<h1>Home AI Assistant</h1><p>TASK-000: GAS connection OK</p>');
+  return HtmlService.createTemplateFromFile('web/index')
+    .evaluate()
+    .setTitle('Home AI Assistant - レシートOCR')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1.0');
+}
+
+/**
+ * HTMLファイルまたはスクリプトをインクルードするテンプレートヘルパー関数。
+ *
+ * @param {string} filename インクルード対象ファイル名 (例: 'web/app')
+ * @return {string} ファイルの内容 (HTML/JS)
+ */
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
+
+// ---------------------------------------------------------------------------
+// レシートOCR エントリーポイント (TASK-002)
+// ---------------------------------------------------------------------------
+
+/**
+ * クライアント（ブラウザ）から最適化されたレシート画像を受け取り、
+ * ReceiptService経由でGemini Multimodal OCRを実行して検証済み構造化データを返す。
+ * ※本タスクではSpreadsheetへの保存は行わない（TASK-004で実装）。
+ *
+ * @param {string} base64Image 最適化されたレシート画像のBase64データ
+ * @return {Object} OCR結果オブジェクト {ok: boolean, data?: Object, error?: Object}
+ */
+function receiveReceiptImage(base64Image) {
+  console.log('[receiveReceiptImage] Invoked. Image string length: ' + (base64Image ? base64Image.length : 0));
+  var result = processReceiptImage(base64Image);
+  console.log('[receiveReceiptImage] Result: ok=' + result.ok + (result.ok ? ', store=' + (result.data && result.data.store) : ', error=' + JSON.stringify(result.error)));
+  return result;
 }
 
 // ---------------------------------------------------------------------------
