@@ -55,6 +55,37 @@ function receiveReceiptImage(base64Image) {
 }
 
 // ---------------------------------------------------------------------------
+// レシート確定操作 エントリーポイント (TASK-003)
+// ---------------------------------------------------------------------------
+
+/**
+ * ユーザーが確認・修正したレシートデータの確定操作を受け付けるエントリーポイント。
+ * ※本タスク(TASK-003)ではSpreadsheetへの保存は行わない（保存本体はTASK-004で実装）。
+ *
+ * @param {Object} confirmedData ユーザー確認・修正済みレシートデータ
+ * @return {Object} 確定受付結果オブジェクト {ok: boolean, message: string, data?: Object, error?: Object}
+ */
+function confirmReceiptData(confirmedData) {
+  console.log('[confirmReceiptData] Invoked. Store: ' + (confirmedData ? confirmedData.store : 'null'));
+  if (!confirmedData || typeof confirmedData !== 'object') {
+    return {
+      ok: false,
+      error: {
+        type: 'SYSTEM_ERROR',
+        message: 'Invalid confirmed receipt data.'
+      }
+    };
+  }
+
+  // TASK-003では確定操作の呼び出し口と状態確認のみ提供し、Spreadsheetへの保存は行わない。
+  return {
+    ok: true,
+    message: 'Receipt data confirmed by user. (Spreadsheet saving will be implemented in TASK-004).',
+    data: confirmedData
+  };
+}
+
+// ---------------------------------------------------------------------------
 // 開発基盤確認用テスト関数
 // ---------------------------------------------------------------------------
 

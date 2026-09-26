@@ -4,238 +4,15 @@
   <meta charset="UTF-8">
   <base target="_top">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home AI Assistant - レシートOCR (TASK-002)</title>
-  <style>
-    :root {
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --text: #1e293b;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
-      --success: #16a34a;
-      --error: #dc2626;
-      --radius: 12px;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-      padding: 16px;
-    }
-
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #0f172a;
-      margin-bottom: 4px;
-    }
-
-    .subtitle {
-      font-size: 0.875rem;
-      color: var(--text-muted);
-    }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-
-    .upload-area {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .button-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 12px 16px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      text-align: center;
-      text-decoration: none;
-    }
-
-    .btn-primary {
-      background-color: var(--primary);
-      color: #ffffff;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      background-color: var(--primary-hover);
-    }
-
-    .btn-secondary {
-      background-color: #f1f5f9;
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-
-    .btn-secondary:hover:not(:disabled) {
-      background-color: #e2e8f0;
-    }
-
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    input[type="file"] {
-      display: none;
-    }
-
-    .preview-container {
-      margin-top: 16px;
-      text-align: center;
-      display: none;
-    }
-
-    .preview-img {
-      max-width: 100%;
-      max-height: 320px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      object-fit: contain;
-    }
-
-    .meta-box {
-      margin-top: 12px;
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      font-size: 0.85rem;
-      text-align: left;
-    }
-
-    .meta-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 4px;
-    }
-
-    .meta-row:last-child {
-      margin-bottom: 0;
-    }
-
-    .meta-label {
-      color: var(--text-muted);
-    }
-
-    .meta-value {
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .status-box {
-      display: none;
-      padding: 14px;
-      border-radius: 8px;
-      margin-top: 16px;
-      font-size: 0.9rem;
-    }
-
-    .status-loading {
-      background-color: #eff6ff;
-      border: 1px solid #bfdbfe;
-      color: #1e40af;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .spinner {
-      width: 20px;
-      height: 20px;
-      border: 2px solid #bfdbfe;
-      border-top-color: #2563eb;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .status-success {
-      background-color: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      color: #166534;
-    }
-
-    .status-error {
-      background-color: #fef2f2;
-      border: 1px solid #fecaca;
-      color: #991b1b;
-    }
-
-    .result-container {
-      display: none;
-      margin-top: 16px;
-    }
-
-    .json-view {
-      background: #0f172a;
-      color: #f8fafc;
-      padding: 14px;
-      border-radius: 8px;
-      font-family: monospace;
-      font-size: 0.8rem;
-      overflow-x: auto;
-      max-height: 400px;
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-
-    .notice {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-top: 16px;
-      text-align: center;
-    }
-  </style>
+  <title>Home AI Assistant - レシートOCR・確認 (TASK-003)</title>
+  <!-- スタイルのインクルード -->
+  <?!= include('web/styles'); ?>
 </head>
 <body>
   <div class="container">
     <header>
       <h1>Home AI Assistant</h1>
-      <p class="subtitle">TASK-002: レシート撮影・画像最適化・構造化OCR</p>
+      <p class="subtitle">TASK-003: レシートOCR・ユーザー確認・修正</p>
     </header>
 
     <div class="card">
@@ -291,16 +68,64 @@
         <div id="errorStatus" class="status-box status-error"></div>
         <div id="successStatus" class="status-box status-success"></div>
 
-        <!-- 結果表示エリア (TASK-002: 構造化JSON確認用) -->
-        <div id="resultContainer" class="result-container">
-          <h3 style="font-size: 1rem; margin-bottom: 8px;">取得された構造化OCR結果 (JSON)</h3>
+        <!-- TASK-003: OCR確認・修正UIコンテナ -->
+        <div id="confirmContainer" class="confirm-container">
+          <div class="section-title">
+            <span>📝 OCR解析結果の確認・修正</span>
+          </div>
+
+          <!-- レシート基本情報 -->
+          <div class="receipt-meta-grid">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="storeInput" class="form-label">店舗名</label>
+              <input type="text" id="storeInput" class="form-control" placeholder="例: スーパーABC">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="dateInput" class="form-label">購入日付</label>
+              <input type="date" id="dateInput" class="form-control">
+            </div>
+          </div>
+
+          <!-- 商品明細リスト -->
+          <div class="section-title" style="font-size: 0.95rem; margin-top: 16px;">
+            <span>購入品目明細</span>
+            <span id="itemCountBadge" style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">-</span>
+          </div>
+
+          <div id="itemsList" class="items-list">
+            <!-- JavaScriptで動的生成 -->
+          </div>
+
+          <!-- 合計金額サマリー -->
+          <div class="confirm-summary">
+            <span class="summary-label">明細合計金額</span>
+            <span class="summary-amount" id="totalAmountDisplay">¥0</span>
+          </div>
+
+          <!-- 入力検証エラーメッセージ -->
+          <div id="validationError" class="validation-error"></div>
+
+          <!-- 確定ボタン -->
+          <button id="confirmBtn" class="btn btn-success" style="width: 100%; margin-top: 8px;">
+            ✅ この内容で確定する
+          </button>
+
+          <!-- 確定完了ステータス -->
+          <div id="confirmSuccessStatus" class="status-box status-success" style="margin-top: 16px;">
+            ✅ レシート内容が確定されました。（※Spreadsheet保存はTASK-004で実行されます）
+          </div>
+        </div>
+
+        <!-- デバッグ・確認用 JSONプレビュー (アコーディオン風) -->
+        <div id="resultContainer" class="result-container" style="display: none;">
+          <h3 style="font-size: 0.85rem; margin-bottom: 4px; color: var(--text-muted);">生OCR結果 (JSON)</h3>
           <pre id="jsonView" class="json-view"></pre>
         </div>
       </div>
     </div>
 
     <p class="notice">
-      ※TASK-002の検証画面です。Spreadsheetへの保存は行いません（確定保存はTASK-004で実装）。
+      ※TASK-003: ユーザー確認・修正画面です。確定操作後もSpreadsheetへの自動保存は行いません（確定保存はTASK-004で実装）。
     </p>
   </div>
 
