@@ -193,12 +193,12 @@ function validateUiInput(data) {
       return { valid: false, error: '商品 #' + num + ' の商品名を入力してください。' };
     }
 
-    if (typeof item.quantity !== 'number' || isNaN(item.quantity) || item.quantity < 1) {
-      return { valid: false, error: '商品 #' + num + ' の数量は1以上の数値を入力してください。' };
+    if (typeof item.quantity !== 'number' || isNaN(item.quantity) || item.quantity < 1 || Math.floor(item.quantity) !== item.quantity) {
+      return { valid: false, error: '商品 #' + num + ' の数量は1以上の整数を入力してください。' };
     }
 
     if (typeof item.amount !== 'number' || isNaN(item.amount) || item.amount < 0) {
-      return { valid: false, error: '商品 #' + num + ' の金額は0以上の数値を入力してください。' };
+      return { valid: false, error: '商品 #' + num + ' の小計は0以上の数値を入力してください。' };
     }
 
     if (validCategories.indexOf(item.category) === -1) {
@@ -344,7 +344,7 @@ if (typeof window !== 'undefined') {
               '<input type="number" min="1" class="form-control item-quantity" value="' + qtyVal + '">' +
             '</div>' +
             '<div>' +
-              '<label class="form-label">金額(円)</label>' +
+              '<label class="form-label">小計(円)</label>' +
               '<input type="number" min="0" class="form-control item-amount" value="' + amountVal + '">' +
             '</div>' +
             '<div>' +
@@ -452,11 +452,29 @@ if (typeof window !== 'undefined') {
 
         for (var i = 0; i < cards.length; i++) {
           var card = cards[i];
-          var name = (card.querySelector('.item-name') || {}).value || '';
-          var qty = parseInt((card.querySelector('.item-quantity') || {}).value, 10);
-          var amt = parseFloat((card.querySelector('.item-amount') || {}).value);
-          var cat = (card.querySelector('.item-category') || {}).value || 'その他';
-          var stock = (card.querySelector('.item-stock-type') || {}).value || 'other';
+          var nameInput = card.querySelector('.item-name');
+          var qtyInput = card.querySelector('.item-quantity');
+          var amtInput = card.querySelector('.item-amount');
+          var catSelect = card.querySelector('.item-category');
+          var stockSelect = card.querySelector('.item-stock-type');
+
+          var name = nameInput ? nameInput.value : '';
+          var rawQty = qtyInput ? qtyInput.value.trim() : '';
+          var rawAmt = amtInput ? amtInput.value.trim() : '';
+          var cat = catSelect ? catSelect.value : 'その他';
+          var stock = stockSelect ? stockSelect.value : 'other';
+
+          // parseIntによる小数の切り捨てを防ぐため、Number()で数値化（空欄時はNaN）
+          var qty = (rawQty === '') ? NaN : Number(rawQty);
+          var amt = (rawAmt === '') ? NaN : Number(rawAmt);
+
+          // 先頭ゼロの入力（011, 005等）がある場合、有効な数値であればinput表示を正規化
+          if (!isNaN(qty) && Math.floor(qty) === qty && qty >= 1 && qtyInput) {
+            qtyInput.value = qty;
+          }
+          if (!isNaN(amt) && amt >= 0 && amtInput) {
+            amtInput.value = amt;
+          }
 
           if (!isNaN(amt)) totalCalc += amt;
 
