@@ -97,9 +97,80 @@ Gemini APIから取得したStructured Outputの検証は、2段階の責務分�
 
 ---
 
-## 5. 後続タスクでの追加予定
+## 5. TASK-002 正式スキーマ: ReceiptOcrSchema
+
+レシート画像から店舗名、日付、合計金額、商品明細リスト（商品名、数量、単価、金額、カテゴリ、stockType）を抽出するためのStructured Outputスキーマ。
+
+```json
+{
+  "type": "object",
+  "required": ["store", "date", "total", "items"],
+  "additionalProperties": false,
+  "properties": {
+    "store": {
+      "type": "string",
+      "description": "店舗名"
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "レシート日付 (YYYY-MM-DD形式)"
+    },
+    "total": {
+      "type": "number",
+      "minimum": 0,
+      "description": "レシート合計金額"
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "description": "購入商品明細リスト",
+      "items": {
+        "type": "object",
+        "required": ["name", "quantity", "unitPrice", "amount", "category", "stockType"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "商品名"
+          },
+          "quantity": {
+            "type": "number",
+            "minimum": 1,
+            "description": "数量"
+          },
+          "unitPrice": {
+            "type": "number",
+            "minimum": 0,
+            "description": "単価（1個あたりの価格）"
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "小計・金額"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["食費", "日用品", "その他"],
+            "description": "支出カテゴリ"
+          },
+          "stockType": {
+            "type": "string",
+            "enum": ["ingredient", "daily", "other"],
+            "description": "在庫管理区分: ingredient (食材・在庫対象), daily (日用品), other (その他/非在庫対象)"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+## 6. 後続タスクでの追加予定
 
 | タスクID | スキーマ名 | 概要 | 状態 |
 |---|---|---|---|
-| **TASK-002** | `ReceiptOcrSchema` | レシート画像からの店舗名、日付、品目、金額、カテゴリ、stockType等の抽出 | 未着手 (TASK-002で確定) |
+| **TASK-002** | `ReceiptOcrSchema` | レシート画像からの店舗名、日付、品目、金額、カテゴリ、stockType等の抽出 | **確定済み (TASK-002)** |
 | **TASK-007** | `RecipeSuggestionSchema` | 在庫食材と条件に基づく主菜・副菜・汁物・不足食材の献立提案 | 未着手 (TASK-007で確定) |
