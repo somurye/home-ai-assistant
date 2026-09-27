@@ -77,12 +77,10 @@ function confirmReceiptData(confirmedData) {
     };
   }
 
-  // TASK-003では確定操作の呼び出し口と状態確認のみ提供し、Spreadsheetへの保存は行わない。
-  return {
-    ok: true,
-    message: 'Receipt data confirmed by user. (Spreadsheet saving will be implemented in TASK-004).',
-    data: confirmedData
-  };
+  // TASK-004: ExpenseService経由で「支出明細」シートへ登録
+  var result = registerExpenses(confirmedData);
+  console.log('[confirmReceiptData] Result: ok=' + result.ok + (result.ok ? ', count=' + (result.data && result.data.registeredCount) : ', error=' + JSON.stringify(result.error)));
+  return result;
 }
 
 // ---------------------------------------------------------------------------
