@@ -122,8 +122,7 @@ function sendReceiptImageToGas(base64Data) {
 }
 
 /**
- * ユーザー確認・修正済みデータを確定操作として送信する (TASK-003)
- * ※本タスクではSpreadsheetへの保存は行わず、確定受付のみを行う（TASK-004で保存実装）。
+ * ユーザー確認・修正済みデータを確定操作として送信する
  * 
  * @param {Object} confirmedData 確定対象データ
  * @returns {Promise<Object>} 確定結果オブジェクト
@@ -144,7 +143,9 @@ function confirmReceiptDataToGas(confirmedData) {
       resolve({
         ok: true,
         message: 'Receipt data confirmed locally.',
-        data: confirmedData
+        data: {
+          registeredCount: confirmedData && confirmedData.items ? confirmedData.items.length : 0
+        }
       });
     }
   });
@@ -211,6 +212,36 @@ function validateUiInput(data) {
   }
 
   return { valid: true };
+}
+
+/**
+ * 修正状況に応じて単価 (unitPrice) を導出する純粋関数 (DEC-02)
+ * OCR結果の該当行と比較し、数量または小計が修正された行のみ小計÷数量(四捨五入)で再導出する。
+ * 未修正行はOCR値を保持する。
+ *
+ * @param {Object} editedItem ユーザー入力データ { quantity: number, amount: number }
+ * @param {Object} [ocrItem] OCR解析データ { quantity: number, amount: number, unitPrice: number }
+ * @returns {number} 導出された単価
+ */
+function deriveUnitPrice(editedItem, ocrItem) {
+  if (!editedItem) return 0;
+  var qty = editedItem.quantity;
+  var amt = editedItem.amount;
+
+  if (ocrItem) {
+    var isQtyModified = (qty !== ocrItem.quantity);
+    var isAmtModified = (amt !== ocrItem.amount);
+    if (!isQtyModified && !isAmtModified) {
+      if (typeof ocrItem.unitPrice === 'number' && !isNaN(ocrItem.unitPrice)) {
+        return ocrItem.unitPrice;
+      }
+    }
+  }
+
+  if (typeof qty === 'number' && !isNaN(qty) && qty > 0 && typeof amt === 'number' && !isNaN(amt)) {
+    return Math.round(amt / qty);
+  }
+  return (typeof amt === 'number' && !isNaN(amt)) ? amt : 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -478,14 +509,16 @@ if (typeof window !== 'undefined') {
 
           if (!isNaN(amt)) totalCalc += amt;
 
-          var origUnitPrice = (currentOcrResult && currentOcrResult.items && currentOcrResult.items[i]) 
-            ? currentOcrResult.items[i].unitPrice 
-            : (qty > 0 ? Math.round(amt / qty) : amt);
+          var ocrItem = (currentOcrResult && currentOcrResult.items && currentOcrResult.items[i]) 
+            ? currentOcrResult.items[i] 
+            : null;
+
+          var finalUnitPrice = deriveUnitPrice({ quantity: qty, amount: amt }, ocrItem);
 
           editedItems.push({
             name: name,
             quantity: qty,
-            unitPrice: origUnitPrice,
+            unitPrice: finalUnitPrice,
             amount: amt,
             category: cat,
             stockType: stock
@@ -509,19 +542,33 @@ if (typeof window !== 'undefined') {
           return;
         }
 
-        // 確定操作呼び出し (TASK-003: 保存本体はTASK-004)
+        // 確定操作呼び出し (TASK-004: 支出明細への登録)
         confirmBtn.disabled = true;
+        if (validationError) validationError.style.display = 'none';
+        if (confirmSuccessStatus) confirmSuccessStatus.style.display = 'none';
+
         confirmReceiptDataToGas(confirmedPayload)
           .then(function(res) {
-            if (confirmSuccessStatus) {
-              confirmSuccessStatus.textContent = '✅ レシート内容が確定されました。（※Spreadsheet保存はTASK-004で実行されます）';
-              confirmSuccessStatus.style.display = 'block';
+            if (res && res.ok === true && res.data && typeof res.data.registeredCount === 'number') {
+              if (validationError) validationError.style.display = 'none';
+              if (confirmSuccessStatus) {
+                confirmSuccessStatus.textContent = '✅ ' + res.data.registeredCount + '件の支出明細を保存しました。';
+                confirmSuccessStatus.style.display = 'block';
+              }
+            } else {
+              confirmBtn.disabled = false;
+              if (confirmSuccessStatus) confirmSuccessStatus.style.display = 'none';
+              if (validationError) {
+                validationError.textContent = '⚠️ 保存に失敗しました。時間をおいて再度お試しください。';
+                validationError.style.display = 'block';
+              }
             }
           })
           .catch(function(err) {
             confirmBtn.disabled = false;
+            if (confirmSuccessStatus) confirmSuccessStatus.style.display = 'none';
             if (validationError) {
-              validationError.textContent = '❌ 確定処理エラー: ' + (err.message || String(err));
+              validationError.textContent = '⚠️ 保存に失敗しました。時間をおいて再度お試しください。';
               validationError.style.display = 'block';
             }
           });
@@ -539,7 +586,8 @@ if (typeof window !== 'undefined') {
     optimizeReceiptImage: optimizeReceiptImage,
     sendReceiptImageToGas: sendReceiptImageToGas,
     confirmReceiptDataToGas: confirmReceiptDataToGas,
-    validateUiInput: validateUiInput
+    validateUiInput: validateUiInput,
+    deriveUnitPrice: deriveUnitPrice
   };
 }
 
@@ -550,7 +598,8 @@ if (typeof module !== 'undefined' && module.exports) {
     sendReceiptImageToGas: sendReceiptImageToGas,
     confirmReceiptDataToGas: confirmReceiptDataToGas,
     formatBytes: formatBytes,
-    validateUiInput: validateUiInput
+    validateUiInput: validateUiInput,
+    deriveUnitPrice: deriveUnitPrice
   };
 }
 </script>
