@@ -14,3 +14,4 @@ node_modules/
 
 # Local clasp project configuration (environment specific, never commit)
 .clasp.json
+testSS/
