@@ -1,9 +1,9 @@
 # GAS仮想プロジェクト
 
-## 開発運用仕様書 v1.3
+## 開発運用仕様書 v1.4
 
 **作成日:** 2026-09-24
-**更新日:** 2026-09-26
+**更新日:** 2026-09-28
 **対象リポジトリ:** `somurye/home-ai-assistant`
 **対象:** Google統合型 家計・在庫・献立アシスタント
 
@@ -16,6 +16,9 @@
 * TASK-002以降の標準フローを、タスク単位のGitブランチとcommitをレビュー開始前の必須成果物とする形に更新
 * Geminiの完了報告はコード全文ではなくGit上のブランチ・commit・差分情報を中心とし、Qwen/PMはGitのブランチ差分・実ファイルを監査対象とすることを明記
 * `Merge Complete` を追加し、PM承認・merge・GAS同期・Task Completeを別状態として明確化
+
+**v1.4での変更点:**
+* 旧版§5.3(GAS Web Appアクセス制御原則)を第44章として復元
 
 ---
 
@@ -720,3 +723,17 @@ GAS実機テスト中に重大障害が発生した場合も、可能な限りGi
 * `docs/DATA_MODEL.md` — データモデル詳細
 * `docs/GEMINI_SCHEMA.md` — Gemini構造化出力Schema
 * `docs/GAS_TEST_REPORT.md` — 実機テスト結果記録
+
+---
+
+# 44. GAS Web Appアクセス制御原則
+
+GAS Web Appのアクセス制御設定は、開発段階と本番展開を分離して厳格に管理する。
+
+- **開発中（TASK-000〜開発段階）**:
+  - `webapp.access` は `"MYSELF"` とする。
+  - 開発基盤および疎通確認段階において、開発者本人以外からの匿名アクセス（`ANYONE_ANONYMOUS` 等）は許可しない。
+  - `webapp.executeAs` は現行設定の `"USER_DEPLOYING"`（デプロイしたユーザーとして実行）に従う。
+- **本番展開時**:
+  - 利用者要件、認証方式、公開範囲を確定した上で `webapp.access` および `webapp.executeAs` の設定を再定義する。
+  - 開発中の `MYSELF` 設定を、本番セキュリティ要件の十分な検討およびPM承認なしに変更してはならない。
