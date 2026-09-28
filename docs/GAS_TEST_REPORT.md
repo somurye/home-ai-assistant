@@ -20,7 +20,7 @@
 * **テスト対象commit**: a1eaf9c相当 (推定・PM確認待ち)
 * **端末**:
   * PC: Windows 11 / Chrome (画面幅 デスクトップ表示)
-  * スマホ: Android Chrome (Android BP2A.250605.031.A3.SCG14KDS1EZE3 / 推定Galaxy A53 5G・PM確認待ち)
+  * スマホ: Galaxy S22 Ultra / Android Chrome
   * タブレット: 未実機 (実機なし・CSS解析による推定)
 * **総合判定**: PASS(既知課題 KI-001 あり、タブレット未実機)
 
