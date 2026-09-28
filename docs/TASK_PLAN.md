@@ -1,10 +1,15 @@
 # Google統合型 家計・在庫・献立アシスタント
 
-## TASK_PLAN — TASK-001〜TASK-008 作業計画 v1.0
+## TASK_PLAN — TASK-001〜TASK-008 作業計画 v1.1
 
 **作成日:** 2026-09-25
-**対象:** `docs/SPEC.md` v1.2 / `docs/DEVELOPMENT.md` v1.2 に基づく個別タスク定義
+**更新日:** 2026-09-28
+**対象:** `docs/SPEC.md` v1.3 / `docs/DEVELOPMENT.md` v1.4 に基づく個別タスク定義
 **位置づけ:** 本書は `docs/DEVELOPMENT.md` 第11章で定める「タスク単位の変更管理」項目(TASK-ID/目的/対象ファイル/変更許可ファイル/変更禁止ファイル/完了条件/テスト条件/証拠)のSSOTとする。
+
+**v1.1での変更点:**
+* TASK-004「変更許可ファイル」に `src/Code.gs`(confirmReceiptDataの接続のみ)を追記
+* TASK-005「実装内容」2の stockType 列挙を `ingredient/daily/other` に変更
 
 **前提:** TASK-000(開発基盤・運用基盤構築)は完了済み。以下はTASK-001以降の作業内容である。依存関係は基本的に直列(TASK-006はTASK-005に依存、TASK-007はTASK-005に依存)。
 
@@ -172,7 +177,7 @@ Level B(UIロジック中心)
 
 ## 変更許可ファイル
 
-上記3点のみ。
+上記3点、および `src/Code.gs`(confirmReceiptDataの接続のみ)。
 
 ## 変更禁止ファイル
 
@@ -228,7 +233,7 @@ Level A(Spreadsheetデータ更新・データモデル変更)
 ## 実装内容
 
 1. 在庫一覧・在庫履歴シート列確定(`inventory_id, product_id, name, category, quantity, unit, stockType, status, updated_at` 等。`docs/SPEC.md` §20,§21準拠)
-2. stockType区分実装(`ingredient/household/consumable/none`。`docs/SPEC.md` §22準拠)
+2. stockType区分実装(`ingredient/daily/other`。`docs/SPEC.md` §22準拠)
 3. 商品名の簡易照合(完全一致ベースの最小実装。本格的な商品マスタ照合は将来タスクとして明示的に対象外とする。`docs/SPEC.md` §15,§16準拠)
 4. 現在状態(在庫一覧)と履歴(在庫履歴)の分離書き込み
 5. status(多/普通/少/なし)の暫定しきい値判定ロジック(設定変更可能に)
