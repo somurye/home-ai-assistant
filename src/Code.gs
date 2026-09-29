@@ -68,19 +68,31 @@ function receiveReceiptImage(base64Image) {
 function confirmReceiptData(confirmedData) {
   console.log('[confirmReceiptData] Invoked. Store: ' + (confirmedData ? confirmedData.store : 'null'));
   if (!confirmedData || typeof confirmedData !== 'object') {
+    console.error('[confirmReceiptData] Invalid confirmed data type: ' + typeof confirmedData);
     return {
       ok: false,
       error: {
-        type: 'SYSTEM_ERROR',
-        message: 'Invalid confirmed receipt data.'
+        type: 'INVALID_ARGUMENT',
+        message: '入力データが不正です。'
       }
     };
   }
 
-  // TASK-004: ExpenseService経由で「支出明細」シートへ登録
-  var result = registerExpenses(confirmedData);
-  console.log('[confirmReceiptData] Result: ok=' + result.ok + (result.ok ? ', count=' + (result.data && result.data.registeredCount) : ', error=' + JSON.stringify(result.error)));
-  return result;
+  try {
+    // TASK-004: ExpenseService経由で「支出明細」シートへ登録
+    var result = registerExpenses(confirmedData);
+    console.log('[confirmReceiptData] Result: ok=' + result.ok + (result.ok ? ', count=' + (result.data && result.data.registeredCount) : ', error=' + JSON.stringify(result.error)));
+    return result;
+  } catch (err) {
+    console.error('[confirmReceiptData] Unexpected error: ' + (err.message || String(err)));
+    return {
+      ok: false,
+      error: {
+        type: 'SYSTEM_ERROR',
+        message: '確定処理中にエラーが発生しました。時間をおいて再度お試しください。'
+      }
+    };
+  }
 }
 
 // ---------------------------------------------------------------------------

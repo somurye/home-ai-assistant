@@ -152,11 +152,12 @@ function registerExpenses(confirmedData, options) {
   // 1. 業務ルール検証 (Business Validation)
   var validation = validateConfirmedReceiptData_(confirmedData);
   if (!validation.valid) {
+    console.error('[registerExpenses] Validation error: ' + validation.error);
     return {
       ok: false,
       error: {
         type: 'VALIDATION_ERROR',
-        message: 'Invalid confirmed receipt data: ' + validation.error
+        message: '入力データが不正です。内容を確認してください。'
       }
     };
   }
@@ -210,11 +211,12 @@ function registerExpenses(confirmedData, options) {
 
   var repoResult = appendFn(rows, options);
   if (!repoResult.ok) {
+    console.error('[registerExpenses] Repository error: ' + (repoResult.error ? JSON.stringify(repoResult.error) : 'Unknown repository error'));
     return {
       ok: false,
       error: repoResult.error || {
         type: 'REPOSITORY_ERROR',
-        message: 'Failed to write expenses to SheetRepository.'
+        message: 'スプレッドシートへの保存処理に失敗しました。'
       }
     };
   }

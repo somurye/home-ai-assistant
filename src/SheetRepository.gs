@@ -127,11 +127,12 @@ function appendExpenseRows(rows, options) {
 
   // 1. 引数検証
   if (!Array.isArray(rows) || rows.length === 0) {
+    console.error('[appendExpenseRows] rows must be a non-empty array of row arrays.');
     return {
       ok: false,
       error: {
         type: 'INVALID_ARGUMENT',
-        message: 'rows must be a non-empty array of row arrays.'
+        message: '入力データが不正です。'
       }
     };
   }
@@ -139,21 +140,47 @@ function appendExpenseRows(rows, options) {
   var numCols = EXPENSE_HEADERS.length;
   for (var i = 0; i < rows.length; i++) {
     if (!Array.isArray(rows[i]) || rows[i].length !== numCols) {
+      console.error('[appendExpenseRows] Row at index ' + i + ' must have exactly ' + numCols + ' columns.');
       return {
         ok: false,
         error: {
           type: 'INVALID_ARGUMENT',
-          message: 'Row at index ' + i + ' must have exactly ' + numCols + ' columns.'
+          message: '入力データが不正です。'
         }
       };
     }
   }
 
-  // 2. シート取得およびバッチ書き込み
+  // 2. 排他制御 (DEC-03)
+  var lock = null;
+  var hasLock = false;
+  if ((options && options.lock) || (typeof LockService !== 'undefined' && LockService.getScriptLock)) {
+    try {
+      lock = (options && options.lock) ? options.lock : LockService.getScriptLock();
+      if (lock) {
+        lock.waitLock(10000); // 10秒待機
+        hasLock = true;
+      }
+    } catch (lockErr) {
+      console.error('[appendExpenseRows] Lock acquire failed: ' + (lockErr.message || String(lockErr)));
+      return {
+        ok: false,
+        error: {
+          type: 'LOCK_TIMEOUT',
+          message: '排他制御のロック取得に失敗しました。時間をおいて再度お試しください。'
+        }
+      };
+    }
+  }
+
+  // 3. シート取得およびバッチ書き込み
   try {
     var sheet = getExpenseSheet(options);
     var lastRow = sheet.getLastRow();
     var startRow = lastRow + 1;
+
+    // 日付列 (B列: 列インデックス2) を書式なしテキストとして設定 (DEC-04)
+    sheet.getRange(startRow, 2, rows.length, 1).setNumberFormat('@');
 
     // バッチ書き込み: setValues で一括登録（ループ内の setValue / appendRow 禁止）
     sheet.getRange(startRow, 1, rows.length, numCols).setValues(rows);
@@ -164,13 +191,22 @@ function appendExpenseRows(rows, options) {
       startRow: startRow
     };
   } catch (err) {
+    console.error('[appendExpenseRows] Failed to append expense rows to Spreadsheet: ' + (err.message || String(err)));
     return {
       ok: false,
       error: {
         type: 'REPOSITORY_ERROR',
-        message: 'Failed to append expense rows to Spreadsheet: ' + (err.message || String(err))
+        message: 'スプレッドシートへの保存処理に失敗しました。'
       }
     };
+  } finally {
+    if (lock && hasLock) {
+      try {
+        lock.releaseLock();
+      } catch (releaseErr) {
+        console.error('[appendExpenseRows] Error releasing lock: ' + (releaseErr.message || String(releaseErr)));
+      }
+    }
   }
 }
 
@@ -207,11 +243,12 @@ function getAllExpenseRows(options) {
       rows: dataRows
     };
   } catch (err) {
+    console.error('[getAllExpenseRows] Failed to read expense rows from Spreadsheet: ' + (err.message || String(err)));
     return {
       ok: false,
       error: {
         type: 'REPOSITORY_ERROR',
-        message: 'Failed to read expense rows from Spreadsheet: ' + (err.message || String(err))
+        message: 'スプレッドシートからのデータ取得に失敗しました。'
       }
     };
   }

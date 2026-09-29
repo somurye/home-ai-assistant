@@ -1,6 +1,6 @@
 # Google統合型 家計・在庫・献立アシスタント
 
-## TASK_PLAN — TASK-001〜TASK-008 作業計画 v1.1
+## TASK_PLAN — TASK-001〜TASK-008 作業計画 v1.2
 
 **作成日:** 2026-09-25
 **更新日:** 2026-09-28
@@ -10,6 +10,9 @@
 **v1.1での変更点:**
 * TASK-004「変更許可ファイル」に `src/Code.gs`(confirmReceiptDataの接続のみ)を追記
 * TASK-005「実装内容」2の stockType 列挙を `ingredient/daily/other` に変更
+
+**v1.2での変更点:**
+* TASK-004-FIXの追加(PM決定 DEC-01〜DEC-06)
 
 **前提:** TASK-000(開発基盤・運用基盤構築)は完了済み。以下はTASK-001以降の作業内容である。依存関係は基本的に直列(TASK-006はTASK-005に依存、TASK-007はTASK-005に依存)。
 
@@ -208,6 +211,74 @@ Spreadsheet登録前後のスクリーンショット、Git diff
 ## Qwenレビュー強度
 
 Level A(Spreadsheetデータ更新・データモデル変更)
+
+---
+
+# TASK-004-FIX
+
+## 目的
+
+TASK-004の遡及レビューで確認された不具合(確定UIの偽成功等)と、データ整合性・セキュリティの指摘を修正する。新機能・リファクタリングは行わない。
+
+## 対象ファイル
+
+* `docs/TASK_PLAN.md`(Step 0のみ)
+* `web/app.html`
+* `src/SheetRepository.gs`
+* `src/ExpenseService.gs`
+* `src/Code.gs`(必要な場合のみ。エラー応答の整形に限る)
+* `docs/DATA_MODEL.md`
+
+## 変更許可ファイル
+
+上記6点のみ。docs/TASK_PLAN.md は TASK-004-FIX 節の追加と版数更新のみ(他の節は変更禁止)。
+およびtests/task004_fix.test.js(F2で追加)。
+
+## 変更禁止ファイル
+
+src/GeminiService.gs, src/ReceiptService.gs, web/index.html, web/styles.html, appsscript.json, .claspignore, docs/SPEC.md, docs/DEVELOPMENT.md, docs/GAS_TEST_REPORT.md, Qwen_REVIEW.md、その他すべて
+
+## 実装内容
+
+Step 1 [DEC-01] 確定処理の応答判定(web/app.html):
+confirmReceiptDataToGas の resolve 値について、`res && res.ok === true` かつ `res.data && typeof res.data.registeredCount === 'number'` のときのみ成功表示を行う。それ以外は失敗として扱う。失敗時は、汎用メッセージ「保存に失敗しました。時間をおいて再度お試しください。」を表示し、確定ボタンを再有効化する。res.error.message などの生メッセージは表示しない。成功時は「✅ N件の支出明細を保存しました。」(N = res.data.registeredCount)を表示する。「TASK-004で実行されます」の文言を削除する。
+
+Step 2 [DEC-02] unitPrice 導出(web/app.html):
+OCR結果の該当行と比較して、数量または小計が修正された行のみ unitPrice = Math.round(小計 ÷ 数量) を送る。未修正行はOCR値を保持する。判定ロジックは純粋関数(例:deriveUnitPrice)に切り出し、既存の module.exports に追加する。
+
+Step 3 [DEC-03] 排他制御(src/SheetRepository.gs):
+appendExpenseRows の getLastRow〜setValues を LockService.getScriptLock() で囲む(waitLock 10秒程度、finally で releaseLock)。取得失敗時は ok:false の分類済みエラーを返す。モック/非GAS環境では LockService 未定義でも動作するようガードする。appsscript.json の変更が必要な場合は変更せず、PMへ報告する。
+
+Step 4 [DEC-04] 日付列(src/SheetRepository.gs):
+書き込む範囲の日付列(B列)を setNumberFormat('@') にしてから setValues する。バッチ性(ループ内API呼び出し禁止)を維持する。
+
+Step 5 [DEC-05] エラー文(src/SheetRepository.gs, src/ExpenseService.gs, src/Code.gs):
+ユーザーへ返す message は汎用文言にし、err.message は console.error のみへ出す。error.type による分類は維持する。
+
+Step 6 docs/DATA_MODEL.md:
+§3.3 の unitPrice の規定に「ユーザーが数量または小計を修正した行は、小計÷数量(四捨五入)で再導出する」を追記する(他の記述は変更しない)。日付列を書式なしテキストで書き込む旨も追記する。
+
+## 完了条件
+
+* 保存失敗時に成功表示が出ず、ボタンが再有効化される
+* 「TASK-004で実行されます」の文言が存在しない
+* 修正行のunitPriceが再導出され、未修正行はOCR値のまま保存される
+* 追記処理がロックで保護され、ロック失敗時に分類済みエラーが返る
+* 日付が文字列として保存される
+* 生エラー文がUIへ返らない
+
+## テスト条件
+
+* 単体(モック):ok:false 時のUI分岐、deriveUnitPrice、ロック失敗経路、エラー文の汎用化
+* 実機(PMの別途指示で実施。本タスクでは実施しない)
+
+## 証拠
+
+git diff、単体テスト結果
+
+## Qwenレビュー強度
+
+Level A(Spreadsheetデータ更新・エラー処理・確定契約)
 
 ---
 
